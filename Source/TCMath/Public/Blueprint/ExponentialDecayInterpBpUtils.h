@@ -17,17 +17,17 @@ class TCMATH_API UExponentialDecayInterpBpUtils : public UBlueprintFunctionLibra
 public:
 	/** Smooth follow for float */
 	UFUNCTION(BlueprintPure, Category = "TC|Math|Interpolation")
-	static float FExponentialDecayInterp(float Current, float Target, float DeltaTime, float FollowSpeed);
+	static float FExponentialDecayInterp(float Current, float Target, float DeltaTime, float InterpSpeed);
 
 	/** Smooth follow for FVector */
 	UFUNCTION(BlueprintPure, Category = "TC|Math|Interpolation")
-	static FVector VExponentialDecayInterp(const FVector& Current, const FVector& Target, float DeltaTime, float FollowSpeed);
+	static FVector VExponentialDecayInterp(const FVector& Current, const FVector& Target, float DeltaTime, float InterpSpeed);
 
 	/** Smooth follow for FVector2D */
 	UFUNCTION(BlueprintPure, Category = "TC|Math|Interpolation")
-	static FVector2D V2DExponentialDecayInterp(const FVector2D& Current, const FVector2D& Target, float DeltaTime, float FollowSpeed);
+	static FVector2D V2DExponentialDecayInterp(const FVector2D& Current, const FVector2D& Target, float DeltaTime, float InterpSpeed);
 	
 	/** Smooth follow for FRotator */
 	UFUNCTION(BlueprintPure, Category = "TC|Math|Interpolation")
-	static FRotator RExponentialDecayInterp(const FRotator& Current, const FRotator& Target, float DeltaTime, float FollowSpeed);
+	static FRotator RExponentialDecayInterp(const FRotator& Current, const FRotator& Target, float DeltaTime, float InterpSpeed);
 };

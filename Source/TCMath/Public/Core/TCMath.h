@@ -14,17 +14,17 @@ namespace TC::Math
 	/// @param Current The current value of the variable we are interpolating
 	/// @param Target The target value we are interpolating to
 	/// @param DeltaTime The DeltaTime since the last interpolation/frame
-	/// @param FollowSpeed How fast we are moving from Current to Target
+	/// @param InterpSpeed How fast we are moving from Current to Target
 	/// @return The next step of the interpolation from Current to Target
 	template<typename T>
 	[[nodiscard]] T ExponentialDecayInterp(
 		const T& Current,
 		const T& Target,
 		float DeltaTime,
-		float FollowSpeed)
+		float InterpSpeed)
 	{
 		// Return Current if FollowSpeed or DeltaTime <= 0
-		if (FollowSpeed <= 0.0f || DeltaTime <= 0.0f)
+		if (InterpSpeed <= 0.0f || DeltaTime <= 0.0f)
 		{
 			return Current;
 		}
@@ -32,7 +32,7 @@ namespace TC::Math
 		// Calculate the interpolation factor (Alpha) using an exponential decay formula.
 		// The higher the FollowSpeed, the faster the Current value moves toward Target.
 		// The longer the DeltaTime, the more influence the movement has in a single update.
-		float Alpha = FMath::Exp(-FollowSpeed * DeltaTime);
+		float Alpha = FMath::Exp(-InterpSpeed * DeltaTime);
 		// Perform the smooth interpolation:
 		// - (Current - Target) finds the difference between the two values.
 		// - Multiplying by Alpha reduces the gap over time, creating a smooth transition.
