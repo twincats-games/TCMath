@@ -3,23 +3,63 @@
 
 #include "Blueprint/ComputeOvoidIntersectionBpUtils.h"
 
-#include "Core/TCMath.h"
 
 FVector UComputeOvoidIntersectionBpUtils::VComputeOvoidIntersection(
 	const FOvoidPathData& OvoidData,
 	const FVector& ForwardVector,
 	const FVector& ReferenceLocation)
 {
-	return TC::Math::ComputeOvoidIntersection<FVector>(OvoidData, ForwardVector, ReferenceLocation);
+	FVector OvoidCenter = OvoidData.Center;
+	FVector Radii = OvoidData.Radii;
+	const FVector ReferenceVector = ReferenceLocation.IsNearlyZero() ? OvoidCenter : ReferenceLocation;
+
+	// 1. Convert Forward Vector to an angle
+	float Theta = FMath::Atan2(ForwardVector.Y, ForwardVector.X);
+
+	// 2. Compute the first intersection point (C)
+	FVector C;
+	C.X = OvoidCenter.X + Radii.X * FMath::Cos(Theta);
+	C.Y = OvoidCenter.Y + Radii.Y * FMath::Sin(Theta);
+	C.Z = OvoidCenter.Z; // Keep Z unchanged if working in 2D space
+
+	// If the reference location is the same as the ovoid center, return C
+	if (ReferenceVector.Equals(OvoidCenter, 0.01f))
+	{
+		return C;
+	}
+
+	// 3. Compute triangle sides
+	FVector AC = C - OvoidCenter;
+	FVector BC = C - ReferenceVector;
+
+	// 4. Compute angle between AC and BC using the dot product formula
+	float DotProduct = FVector::DotProduct(AC.GetSafeNormal(), BC.GetSafeNormal());
+	float AngleAC_BC = FMath::Acos(FMath::Clamp(DotProduct, -1.0f, 1.0f));
+
+	// 5. Adjust the angle based on the reference location's position
+	float FinalTheta = Theta + AngleAC_BC; // or Theta - AngleAC_BC depending on placement
+
+	// 6. Compute the final intersection point
+	FVector FinalIntersection;
+	FinalIntersection.X = OvoidCenter.X + Radii.X * FMath::Cos(FinalTheta);
+	FinalIntersection.Y = OvoidCenter.Y + Radii.Y * FMath::Sin(FinalTheta);
+	FinalIntersection.Z = C.Z;
+
+	return FinalIntersection;
 }
 
 FVector2D UComputeOvoidIntersectionBpUtils::V2DComputeOvoidIntersection(
 	const FOvoidPathData& OvoidData,
 	const FVector2D& ForwardVector,
-	const FVector2D& ReferenceLocation,
-	E2DOvoidPlane Plane)
+	const FVector2D& ReferenceLocation)
 {
-	return TC::Math::ComputeOvoidIntersection<FVector2D>(OvoidData, ForwardVector, ReferenceLocation, Plane);
+	// Convert FVector2D to FVector (Z = 0)
+	FVector ForwardVector3D(ForwardVector.X, ForwardVector.Y, 0.0f);
+	FVector ReferenceLocation3D(ReferenceLocation.X, ReferenceLocation.Y, 0.0f);
+	// Call the 3D function
+	FVector WorldIntersection = VComputeOvoidIntersection(OvoidData, ForwardVector3D, ReferenceLocation3D);
+	// Convert back to FVector2D
+	return FVector2D(WorldIntersection.X, WorldIntersection.Y);
 }
 
 void UComputeOvoidIntersectionBpUtils::DrawDebugOvoid(
