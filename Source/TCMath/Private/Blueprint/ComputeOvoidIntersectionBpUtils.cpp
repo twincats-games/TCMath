@@ -6,58 +6,42 @@
 
 FVector UComputeOvoidIntersectionBpUtils::VComputeOvoidIntersection(
 	const FOvoidPathData& OvoidData,
-	const FVector& ForwardVector,
-	const FVector& ReferenceLocation)
+	const FVector& ForwardVector)
 {
-	FVector OvoidCenter = OvoidData.Center;
-	FVector Radii = OvoidData.Radii;
-	const FVector ReferenceVector = ReferenceLocation.IsNearlyZero() ? OvoidCenter : ReferenceLocation;
+	// Extract Ovoid properties
+	const FVector& OvoidCenter = OvoidData.Center;
+	const FVector& Radii = OvoidData.Radii;
+	const FRotator& OvoidRotation = OvoidData.Rotation;
 
-	// 1. Convert Forward Vector to an angle
-	float Theta = FMath::Atan2(ForwardVector.Y, ForwardVector.X);
+	// Step 1: Convert ForwardVector to Ovoid's Local Space
+	// Get the inverse rotation to transform world-space vectors into local ovoid space
+	FQuat InverseRotation = OvoidRotation.Quaternion().Inverse();
+	FVector LocalForward = InverseRotation.RotateVector(ForwardVector.GetSafeNormal());
+	
+	// Step 2: Convert the direction to an ellipse-friendly form
+	FVector NormalizedDir = FVector(LocalForward.X / Radii.X, LocalForward.Y / Radii.Y, 0.0f);
+	NormalizedDir.Normalize(); // Re-normalize after applying inverse scaling
 
-	// 2. Compute the first intersection point (C)
-	FVector C;
-	C.X = OvoidCenter.X + Radii.X * FMath::Cos(Theta);
-	C.Y = OvoidCenter.Y + Radii.Y * FMath::Sin(Theta);
-	C.Z = OvoidCenter.Z; // Keep Z unchanged if working in 2D space
+	// Step 3: Compute intersection in local space
+	FVector LocalIntersection = FVector(
+		Radii.X * NormalizedDir.X,
+		Radii.Y * NormalizedDir.Y,
+		0.0f // Keep in the ovoid’s 2D plane
+	);
 
-	// If the reference location is the same as the ovoid center, return C
-	if (ReferenceVector.Equals(OvoidCenter, 0.01f))
-	{
-		return C;
-	}
-
-	// 3. Compute triangle sides
-	FVector AC = C - OvoidCenter;
-	FVector BC = C - ReferenceVector;
-
-	// 4. Compute angle between AC and BC using the dot product formula
-	float DotProduct = FVector::DotProduct(AC.GetSafeNormal(), BC.GetSafeNormal());
-	float AngleAC_BC = FMath::Acos(FMath::Clamp(DotProduct, -1.0f, 1.0f));
-
-	// 5. Adjust the angle based on the reference location's position
-	float FinalTheta = Theta + AngleAC_BC; // or Theta - AngleAC_BC depending on placement
-
-	// 6. Compute the final intersection point
-	FVector FinalIntersection;
-	FinalIntersection.X = OvoidCenter.X + Radii.X * FMath::Cos(FinalTheta);
-	FinalIntersection.Y = OvoidCenter.Y + Radii.Y * FMath::Sin(FinalTheta);
-	FinalIntersection.Z = C.Z;
-
-	return FinalIntersection;
+	// Step 3: Convert back to World Space
+	FVector WorldIntersection = OvoidCenter + OvoidRotation.RotateVector(LocalIntersection);
+	return WorldIntersection;
 }
 
 FVector2D UComputeOvoidIntersectionBpUtils::V2DComputeOvoidIntersection(
 	const FOvoidPathData& OvoidData,
-	const FVector2D& ForwardVector,
-	const FVector2D& ReferenceLocation)
+	const FVector2D& ForwardVector)
 {
 	// Convert FVector2D to FVector (Z = 0)
 	FVector ForwardVector3D(ForwardVector.X, ForwardVector.Y, 0.0f);
-	FVector ReferenceLocation3D(ReferenceLocation.X, ReferenceLocation.Y, 0.0f);
 	// Call the 3D function
-	FVector WorldIntersection = VComputeOvoidIntersection(OvoidData, ForwardVector3D, ReferenceLocation3D);
+	FVector WorldIntersection = VComputeOvoidIntersection(OvoidData, ForwardVector3D);
 	// Convert back to FVector2D
 	return FVector2D(WorldIntersection.X, WorldIntersection.Y);
 }

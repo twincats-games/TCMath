@@ -102,40 +102,10 @@ static FRotator RExponentialDecayInterp(const FRotator& Current, const FRotator&
 
 ## 📌 Ovoid Intersection Computation
 
-### `ComputeOvoidIntersection`
-
 #### Description
 Calculates the intersection point of a direction vector with an **ovoid (elliptical)** path. This is useful for movement prediction, AI navigation, and physics-based interactions.
 
-#### Template Signature
-```cpp
-template<typename T>
-T ComputeOvoidIntersection(
-    const FOvoidPathData& OvoidData,
-    const T& ForwardVector,
-    const T& ReferenceLocation,
-    E2DOvoidPlane Plane = E2DOvoidPlane::None
-);
-```
-
-#### Parameters
-- `OvoidData` (`FOvoidPathData`) - Defines the ovoid's position and shape.
-- `ForwardVector` (`T`) - The direction vector to compute the intersection.
-- `ReferenceLocation` (`T`) - The point from which the intersection is computed.
-- `Plane` (`E2DOvoidPlane`) - Defines the 2D projection plane (XY, XZ, YZ).
-
-#### Returns
-- `T` - The computed intersection point in world space.
-
-#### Usage Example (C++)
-```cpp
-FVector IntersectionPoint = ComputeOvoidIntersection<FVector>(OvoidData, ForwardVector, ReferenceLocation);
-FVector2D Intersection2D = ComputeOvoidIntersection<FVector2D>(OvoidData, ForwardVector2D, ReferenceLocation2D, E2DOvoidPlane::XY);
-```
-
----
-
-### `ComputeOvoidIntersectionBp` (Blueprint)
+### `VComputeOvoidIntersection` (Blueprint and C++)
 
 #### Description
 A Blueprint-exposed function that computes the intersection of an ovoid path and a given direction vector.
@@ -146,23 +116,18 @@ A Blueprint-exposed function that computes the intersection of an ovoid path and
 UFUNCTION(BlueprintPure, Category = "TC|Math|Ovoid")
 static FVector VComputeOvoidIntersection(
 	const FOvoidPathData& OvoidData,
-	const FVector& ForwardVector,
-	const FVector& ReferenceLocation = FVector::ZeroVector);
+	const FVector& ForwardVector);
 
 // Specialization for FVector2D
 UFUNCTION(BlueprintPure, Category = "TC|Math|Ovoid")
 static FVector2D V2DComputeOvoidIntersection(
 	const FOvoidPathData& OvoidData,
-	const FVector2D& ForwardVector,
-	const FVector2D& ReferenceLocation = FVector2D::ZeroVector,
-	E2DOvoidPlane Plane = E2DOvoidPlane::XY);
+	const FVector2D& ForwardVector);
 ```
 
 #### Parameters
 - `OvoidData` (`FOvoidPathData`) - Defines the ovoid properties (center, radii).
 - `ForwardVector` - The direction vector.
-- `ReferenceLocation` - The starting point.
-- `Plane` (`E2DOvoidPlane`) - The projection plane (for 2D computations).
 
 #### Returns
 - The intersection point.
@@ -171,6 +136,12 @@ static FVector2D V2DComputeOvoidIntersection(
 1. Define an **OvoidPathData** struct in Blueprint.
 2. Use **VComputeOvoidIntersection** to determine where an object will intersect the ovoid.
 3. Debug the result using `DrawDebugOvoid`.
+
+#### Usage Example (C++)
+```cpp
+FVector IntersectionPoint = VComputeOvoidIntersection(OvoidData, ForwardVector);
+FVector2D Intersection2D = V2DComputeOvoidIntersection(OvoidData, ForwardVector2D);
+```
 
 ---
 
