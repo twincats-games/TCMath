@@ -3,15 +3,6 @@
 #include <CoreMinimal.h>
 #include <TCMathTypes.generated.h>
 
-UENUM(BlueprintType)
-enum class E2DOvoidPlane : uint8
-{
-	None = 0,
-	XY = 1,
-	XZ = 2,
-	YZ = 3	
-};
-
 USTRUCT(BlueprintType)
 struct FOvoidPathData
 {
