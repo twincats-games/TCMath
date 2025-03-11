@@ -66,40 +66,36 @@ void UComputeOvoidIntersectionBpUtils::DrawDebugOvoid(
 		return;
 	}
 
-	// Compute the normal of the plane in which the ovoid lies.
-	// The plane is defined by the center of the ovoid and the intersection point.
+	// Compute the plane normal using the intersection point relative to the center
 	FVector Normal = (Intersection - OvoidData.Center).GetSafeNormal();
+    
+	// If the intersection is the center, return (avoid invalid normal)
 	if (Normal.IsNearlyZero())
 	{
-		return; // Avoid invalid normal (e.g., when intersection == center)
+		return;
 	}
 
-	// Compute two perpendicular vectors (AxisX, AxisY) that form a basis for the plane.
-	// These vectors define the local coordinate system where we will draw the ovoid.
-	FVector AxisX, AxisY;
-	FVector::CreateOrthonormalBasis(AxisX, AxisY, Normal);
+	// Get the ovoid's local X and Y axes, considering its rotation
+	FVector AxisX = OvoidData.Rotation.RotateVector(FVector(1, 0, 0)) * OvoidData.Radii.X;
+	FVector AxisY = OvoidData.Rotation.RotateVector(FVector(0, 1, 0)) * OvoidData.Radii.Y;
 
-	// Define the number of segments for approximating the ovoid path as a series of line segments.
+	// Define number of segments
 	const int NumSegments = 32;
+	const float AngleStep = 360.0f / NumSegments;
 
-	// Compute the first point on the ovoid path
-	FVector LastPoint = OvoidData.Center + (AxisX * OvoidData.Radii.X);
+	// Compute the first point using the ovoid transformation
+	FVector LastPoint = OvoidData.Center + AxisX;
 
-	// Iterate through the defined number of segments to approximate the ovoid path
 	for (int i = 1; i <= NumSegments; ++i)
 	{
-		// Compute the angle for the next segment
-		float Angle = (2.0f * PI * i) / NumSegments;
+		// Compute the next point using rotation in the local ovoid space
+		float AngleRad = FMath::DegreesToRadians(AngleStep * i);
+		FVector NextPoint = OvoidData.Center + AxisX * FMath::Cos(AngleRad) + AxisY * FMath::Sin(AngleRad);
 
-		// Compute the next point using ellipse parametric equations, projected onto the plane
-		FVector NextPoint = OvoidData.Center + 
-		                    (AxisX * (OvoidData.Radii.X * FMath::Cos(Angle))) + 
-		                    (AxisY * (OvoidData.Radii.Y * FMath::Sin(Angle)));
-
-		// Draw a debug line between the previous and the current segment
+		// Draw the segment
 		DrawDebugLine(World, LastPoint, NextPoint, PathColor, false, DebugDuration, 0, 2.0f);
-		
-		// Update the last point for the next iteration
+
+		// Update for the next segment
 		LastPoint = NextPoint;
 	}
 
