@@ -4,11 +4,13 @@
 #include "Blueprint/ExponentialDecayInterpBpUtils.h"
 #include <Core/TCMath.h>
 
+#include "Config/TCMathConfig.h"
 #include "Kismet/KismetMathLibrary.h"
 
 float UExponentialDecayInterpBpUtils::FExponentialDecayInterp(float Current,float Target, float DeltaTime, float InterpSpeed)
 {
-	if ((Current - Target) < 0.1f)
+	const UTCMathConfig* Settings = GetDefault<UTCMathConfig>();
+	if ((Current - Target) < Settings->FloatInterpolationDeadZone)
 	{
 		return Target;
 	}
@@ -18,7 +20,8 @@ float UExponentialDecayInterpBpUtils::FExponentialDecayInterp(float Current,floa
 
 FVector UExponentialDecayInterpBpUtils::VExponentialDecayInterp(const FVector& Current, const FVector& Target, float DeltaTime, float InterpSpeed)
 {
-	if ((Current - Target).Length() < 0.5f)
+	const UTCMathConfig* Settings = GetDefault<UTCMathConfig>();
+	if ((Current - Target).Length() < Settings->VectorInterpolationDeadZone)
 	{
 		return Target;
 	}
@@ -28,7 +31,8 @@ FVector UExponentialDecayInterpBpUtils::VExponentialDecayInterp(const FVector& C
 
 FVector2D UExponentialDecayInterpBpUtils::V2DExponentialDecayInterp(const FVector2D& Current, const FVector2D& Target, float DeltaTime, float InterpSpeed)
 {
-	if ((Current - Target).Length() < 0.5f)
+	const UTCMathConfig* Settings = GetDefault<UTCMathConfig>();
+	if ((Current - Target).Length() < Settings->VectorInterpolationDeadZone)
 	{
 		return Target;
 	}
@@ -38,7 +42,8 @@ FVector2D UExponentialDecayInterpBpUtils::V2DExponentialDecayInterp(const FVecto
 
 FRotator UExponentialDecayInterpBpUtils::RExponentialDecayInterp(const FRotator& Current, const FRotator& Target, float DeltaTime, float InterpSpeed)
 {
-	if ((Current - Target).IsNearlyZero(1.0f))
+	const UTCMathConfig* Settings = GetDefault<UTCMathConfig>();
+	if ((Current - Target).IsNearlyZero(Settings->RotatorInterpolationDeadZone))
 	{
 		return Target;
 	}
